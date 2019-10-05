@@ -11,7 +11,7 @@ class GameReset(QDialog):
 
     def initwindow(self):
         self.setWindowTitle(self.MainWindow.Title)
-        self.setGeometry(self.MainWindow.Left, self.MainWindow.Top, self.MainWindow.Width, self.MainWindow.Height)
+        self.setGeometry(self.MainWindow.Left+210, self.MainWindow.Top, self.MainWindow.Width, self.MainWindow.Height)
         self.create_depend_layout()
         self.create_game_reset_layout()
         self.linking_Button()
@@ -101,8 +101,6 @@ class GameReset(QDialog):
                            "color: white;\n" \
                            "font-family: Glacial Indifference;\n" \
                            "background: transparent;\n" \
-                           "letter-spacing:2px;\n" \
-                           "margin-top: -10px;\n" \
                            "margin-left: 50px;\n" \
                            "}"
         Label.setStyleSheet(Label_StyleSheet)
@@ -140,47 +138,18 @@ class GameReset(QDialog):
         # creating msg label.
         MsgHBoxLayout = QHBoxLayout()
         self.GameReset_MsgLabel = QLabel("")
-        self.MsgLabel_StyleSheet = ""
-        if self.MainWindow.Winner == 'user':
-            self.GameReset_MsgLabel.setText("You Won")
-            self.MsgLabel_StyleSheet = "QLabel{\n" \
-                                  "color: white;\n" \
-                                  "font-size: 17px;\n" \
-                                  "color: white;\n" \
-                                  "background-color: green;\n" \
-                                  "padding: 5px 15px 5px 15px;\n" \
-                                  "border-radius: 15px;\n" \
-                                  "font-family: Glacial Indifference;\n" \
-                                  "margin-bottom: 10px;\n" \
-                                  "margin-top: 10px;\n" \
-                                  "}"
-        elif self.MainWindow.Winner == 'pc':
-            self.GameReset_MsgLabel.setText("You Lost")
-            self.MsgLabel_StyleSheet = "QLabel{\n" \
-                                             "color: white;\n" \
-                                             "font-size: 17px;\n" \
-                                             "color: white;\n" \
-                                             "background-color: #DD5044;\n" \
-                                             "padding: 5px 15px 5px 15px;\n" \
-                                             "border-radius: 15px;\n" \
-                                             "font-family: Glacial Indifference;\n" \
-                                             "margin-bottom: 10px;\n" \
-                                             "margin-top: 10px;\n" \
-                                             "}"
-        elif self.MainWindow.Winner == 'drow':
-            self.GameReset_MsgLabel.setText("Game Drow")
-            self.MsgLabel_StyleSheet = "QLabel{\n" \
-                                              "color: white;\n" \
-                                              "font-size: 17px;\n" \
-                                              "color: white;\n" \
-                                              "background-color: #FF9800;\n" \
-                                              "padding: 5px 15px 5px 15px;\n" \
-                                              "border-radius: 15px;\n" \
-                                              "font-family: Glacial Indifference;\n" \
-                                              "margin-bottom: 10px;\n" \
-                                              "margin-top: 10px;\n" \
-                                              "}"
-        self.GameReset_MsgLabel.setStyleSheet(self.MsgLabel_StyleSheet)
+        self.MsgLabel_StyleSheet_Green = "QLabel{\n" \
+                                          "color: white;\n" \
+                                          "font-size: 17px;\n" \
+                                          "color: white;\n" \
+                                          "background-color: green;\n" \
+                                          "padding: 5px 15px 5px 15px;\n" \
+                                          "border-radius: 15px;\n" \
+                                          "font-family: Glacial Indifference;\n" \
+                                          "margin-bottom: 10px;\n" \
+                                          "margin-top: 10px;\n" \
+                                          "}"
+        self.GameReset_MsgLabel.setStyleSheet(self.MsgLabel_StyleSheet_Green)
         MsgHBoxLayout.addItem(self.HSpacerItem)
         MsgHBoxLayout.addWidget(self.GameReset_MsgLabel)
         MsgHBoxLayout.addItem(self.HSpacerItem)
@@ -230,8 +199,6 @@ class GameReset(QDialog):
                            "color: white;\n" \
                            "font-family: Glacial Indifference;\n" \
                            "background: transparent;\n" \
-                           "letter-spacing:2px;\n" \
-                           "margin-top: -10px;\n" \
                            "margin-bottom: 5px;\n" \
                            "}"
         Label.setStyleSheet(Label_StyleSheet)
@@ -295,50 +262,93 @@ class TicTac(QWidget):
         elif block == 9 and block not in self.Reserved_Block:
             self.PlayGame_Block_9.setText("X")
             self.Reserved_Block.append(block)
+        self.update()
 
         value = self.check_patter()
-        print(value)
+
         if value != False:
             if value == 'X':
                 self.Winner = 'user'
+                #self.GameReset_MsgLabel.setStyleSheet(self.MsgLabel_StyleSheet_Green)
+                self.GameReset.GameReset_MsgLabel.setText("You Won")
             elif value == 'O':
                 self.Winner = 'pc'
+                #self.GameReset.GameReset_MsgLabel.setStyleSheet(self.GameReset.MsgLabel_StyleSheet_Red)
+                self.GameReset.GameReset_MsgLabel.setText("You Lost")
             self.GameReset.exec_()
+            self.reset_game()
         if len(self.Reserved_Block) == 9:
             self.Winner = 'drow'
+            #self.GameReset.GameReset_MsgLabel.setStyleSheet(self.GameReset.MsgLabel_StyleSheet_Yellow)
+            self.GameReset.GameReset_MsgLabel.setText("Game Drow")
             self.GameReset.exec_()
+            self.reset_game()
+        self.PlayGame_Block_1.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_2.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_3.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_4.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_5.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_6.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_7.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_8.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_9.setStyleSheet(self.Block_StyleSheet)
 
     def check_patter(self):
         pattern = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 5, 9], [3, 5, 7], [1, 4, 7], [2, 5, 8], [3, 6, 9]]
-        pattern_data = []
-
         for p_data in pattern:
             temp_list = []
+            block_number = []
             for block in p_data:
                 if block == 1:
                     temp_list.append(self.PlayGame_Block_1.text())
+                    block_number.append(1)
                 if block == 2:
                     temp_list.append(self.PlayGame_Block_2.text())
+                    block_number.append(2)
                 if block == 3:
                     temp_list.append(self.PlayGame_Block_3.text())
+                    block_number.append(3)
                 if block == 4:
                     temp_list.append(self.PlayGame_Block_4.text())
+                    block_number.append(4)
                 if block == 5:
                     temp_list.append(self.PlayGame_Block_5.text())
+                    block_number.append(5)
                 if block == 6:
                     temp_list.append(self.PlayGame_Block_6.text())
+                    block_number.append(6)
                 if block == 7:
                     temp_list.append(self.PlayGame_Block_7.text())
+                    block_number.append(7)
                 if block == 8:
                     temp_list.append(self.PlayGame_Block_8.text())
+                    block_number.append(8)
                 if block == 9:
                     temp_list.append(self.PlayGame_Block_9.text())
-            pattern_data.append(temp_list)
-
-        for p_data in pattern_data:
-            b1, b2, b3 = p_data
-            if b1 == b2 == b3:
-                return b1
+                    block_number.append(9)
+            b1, b2, b3 = temp_list
+            if (b1 != "" and b2 != "" and b3 != ""):
+                if b1 == b2 == b3:
+                    b1, b2, b3 = block_number
+                    if b1 == 1 or b2 == 1 or b3 == 1:
+                        self.PlayGame_Block_1.setStyleSheet(self.WinBlock_StyleSheet)
+                    if b1 == 2 or b2 == 2 or b3 == 2:
+                        self.PlayGame_Block_2.setStyleSheet(self.WinBlock_StyleSheet)
+                    if b1 == 3 or b2 == 3 or b3 == 3:
+                        self.PlayGame_Block_3.setStyleSheet(self.WinBlock_StyleSheet)
+                    if b1 == 4 or b2 == 4 or b3 == 4:
+                        self.PlayGame_Block_4.setStyleSheet(self.WinBlock_StyleSheet)
+                    if b1 == 5 or b2 == 5 or b3 == 5:
+                        self.PlayGame_Block_5.setStyleSheet(self.WinBlock_StyleSheet)
+                    if b1 == 6 or b2 == 6 or b3 == 6:
+                        self.PlayGame_Block_6.setStyleSheet(self.WinBlock_StyleSheet)
+                    if b1 == 7 or b2 == 7 or b3 == 7:
+                        self.PlayGame_Block_7.setStyleSheet(self.WinBlock_StyleSheet)
+                    if b1 == 8 or b2 == 8 or b3 == 8:
+                        self.PlayGame_Block_8.setStyleSheet(self.WinBlock_StyleSheet)
+                    if b1 == 9 or b2 == 9 or b3 == 9:
+                        self.PlayGame_Block_9.setStyleSheet(self.WinBlock_StyleSheet)
+                    return temp_list[0]
         else:
             return False
 
@@ -443,8 +453,6 @@ class TicTac(QWidget):
                            "color: white;\n" \
                            "font-family: Glacial Indifference;\n" \
                            "background: transparent;\n" \
-                           "letter-spacing:2px;\n" \
-                           "margin-top: -10px;\n" \
                            "margin-left: 50px;\n" \
                            "}"
         Label.setStyleSheet(Label_StyleSheet)
@@ -465,19 +473,32 @@ class TicTac(QWidget):
         self.PlayGame_BlocksVBoxLayout.setSpacing(5)
         self.PlayGame_MainBlocksFrame.setLayout(self.PlayGame_BlocksVBoxLayout)
 
-        StyleSheet = "QPushButton{\n" \
-                     "background: transparent;\n" \
-                     "background-image: url(Media/Background/blockbg.png);\n" \
-                     "color: white;\n" \
-                     "border: 0px solid #9EDFEF;\n" \
-                     "border-bottom: 4px solid #3C3F41;\n" \
-                     "padding: 10px 20px 10px 20px;\n" \
-                     "font-size: 15px;\n" \
-                     "}\n" \
-                     "QPushButton:hover{\n" \
-                     "background-image: url(Media/Background/blockbghover.png);\n" \
-                     "color: white;\n" \
-                     "}"
+        self.Block_StyleSheet = "QPushButton{\n" \
+                                 "background: transparent;\n" \
+                                 "background-image: url(Media/Background/blockbg.png);\n" \
+                                 "color: white;\n" \
+                                 "border: 0px solid #9EDFEF;\n" \
+                                 "border-bottom: 4px solid #3C3F41;\n" \
+                                 "padding: 10px 20px 10px 20px;\n" \
+                                 "font-size: 15px;\n" \
+                                 "}\n" \
+                                 "QPushButton:hover{\n" \
+                                 "background-image: url(Media/Background/blockbghover.png);\n" \
+                                 "color: white;\n" \
+                                 "}"
+        self.WinBlock_StyleSheet = "QPushButton{\n" \
+                                   "background: transparent;\n" \
+                                   "background-color: green;\n" \
+                                   "color: white;\n" \
+                                   "border: 0px solid #9EDFEF;\n" \
+                                   "border-bottom: 4px solid #3C3F41;\n" \
+                                   "padding: 10px 20px 10px 20px;\n" \
+                                   "font-size: 15px;\n" \
+                                   "}\n" \
+                                   "QPushButton:hover{\n" \
+                                   "background-image: url(Media/Background/blockbghover.png);\n" \
+                                   "color: white;\n" \
+                                   "}"
 
         MaxWidth = 49
         HBoxLayout = QHBoxLayout()
@@ -487,9 +508,9 @@ class TicTac(QWidget):
         self.PlayGame_Block_1.setMaximumWidth(MaxWidth)
         self.PlayGame_Block_2.setMaximumWidth(MaxWidth)
         self.PlayGame_Block_3.setMaximumWidth(MaxWidth)
-        self.PlayGame_Block_1.setStyleSheet(StyleSheet)
-        self.PlayGame_Block_2.setStyleSheet(StyleSheet)
-        self.PlayGame_Block_3.setStyleSheet(StyleSheet)
+        self.PlayGame_Block_1.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_2.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_3.setStyleSheet(self.Block_StyleSheet)
         HBoxLayout.addItem(self.HSpacerItem)
         HBoxLayout.addWidget(self.PlayGame_Block_1)
         HBoxLayout.addWidget(self.PlayGame_Block_2)
@@ -504,9 +525,9 @@ class TicTac(QWidget):
         self.PlayGame_Block_4.setMaximumWidth(MaxWidth)
         self.PlayGame_Block_5.setMaximumWidth(MaxWidth)
         self.PlayGame_Block_6.setMaximumWidth(MaxWidth)
-        self.PlayGame_Block_4.setStyleSheet(StyleSheet)
-        self.PlayGame_Block_5.setStyleSheet(StyleSheet)
-        self.PlayGame_Block_6.setStyleSheet(StyleSheet)
+        self.PlayGame_Block_4.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_5.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_6.setStyleSheet(self.Block_StyleSheet)
         HBoxLayout.addItem(self.HSpacerItem)
         HBoxLayout.addWidget(self.PlayGame_Block_4)
         HBoxLayout.addWidget(self.PlayGame_Block_5)
@@ -521,9 +542,9 @@ class TicTac(QWidget):
         self.PlayGame_Block_7.setMaximumWidth(MaxWidth)
         self.PlayGame_Block_8.setMaximumWidth(MaxWidth)
         self.PlayGame_Block_9.setMaximumWidth(MaxWidth)
-        self.PlayGame_Block_7.setStyleSheet(StyleSheet)
-        self.PlayGame_Block_8.setStyleSheet(StyleSheet)
-        self.PlayGame_Block_9.setStyleSheet(StyleSheet)
+        self.PlayGame_Block_7.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_8.setStyleSheet(self.Block_StyleSheet)
+        self.PlayGame_Block_9.setStyleSheet(self.Block_StyleSheet)
         HBoxLayout.addItem(self.HSpacerItem)
         HBoxLayout.addWidget(self.PlayGame_Block_7)
         HBoxLayout.addWidget(self.PlayGame_Block_8)
@@ -586,15 +607,11 @@ class TicTac(QWidget):
                            "color: white;\n" \
                            "font-family: Glacial Indifference;\n" \
                            "background: transparent;\n" \
-                           "letter-spacing:2px;\n" \
-                           "margin-top: -10px;\n" \
                            "margin-bottom: 5px;\n" \
                            "}"
         Label.setStyleSheet(Label_StyleSheet)
         HBoxLayout.addWidget(Label)
         HBoxLayout.addItem(self.HSpacerItem)
-
-
         self.GamePlayLayout_VBoxLayout.addItem(self.VSpacerItem)
 
     def create_depend_layout(self):
