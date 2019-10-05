@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QFrame, QApplication, QSpacerItem, QSizePolicy, QDialog
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtCore
 import sys
 
 class GameReset(QDialog):
@@ -18,6 +18,11 @@ class GameReset(QDialog):
 
     def linking_Button(self):
         self.CloseButton.clicked.connect(self.MainWindow.close_game)
+        self.GameResetButton.clicked.connect(self.reset_game)
+
+    def reset_game(self):
+        self.MainWindow.reset_game()
+        self.close()
 
     def create_depend_layout(self):
         # creating spacer item
@@ -79,7 +84,7 @@ class GameReset(QDialog):
                            "background: transparent;\n" \
                            "color: white;\n" \
                            "font-family: Glacial Indifference;\n" \
-                           "margin-top:8px;\n" \
+                           "margin-top:0px;\n" \
                            "}"
         Label.setStyleSheet(Label_StyleSheet)
         HBoxLayout.addWidget(Label)
@@ -134,41 +139,48 @@ class GameReset(QDialog):
                      "}"
         # creating msg label.
         MsgHBoxLayout = QHBoxLayout()
-        self.GameReset_MsgLabel = QLabel("You Won")
-        self.MsgLabel_StyleSheet_Green = "QLabel{\n" \
-                              "color: white;\n" \
-                              "font-size: 17px;\n" \
-                              "color: white;\n" \
-                              "background-color: green;\n" \
-                              "padding: 5px 15px 5px 15px;\n" \
-                              "border-radius: 15px;\n" \
-                              "font-family: Glacial Indifference;\n" \
-                              "margin-bottom: 10px;\n" \
-                              "margin-top: 10px;\n" \
-                              "}"
-        self.MsgLabel_StyleSheet_Red = "QLabel{\n" \
-                                         "color: white;\n" \
-                                         "font-size: 17px;\n" \
-                                         "color: white;\n" \
-                                         "background-color: #DD5044;\n" \
-                                         "padding: 5px 15px 5px 15px;\n" \
-                                         "border-radius: 15px;\n" \
-                                         "font-family: Glacial Indifference;\n" \
-                                         "margin-bottom: 10px;\n" \
-                                         "margin-top: 10px;\n" \
-                                         "}"
-        self.MsgLabel_StyleSheet_yellow = "QLabel{\n" \
-                                          "color: white;\n" \
-                                          "font-size: 17px;\n" \
-                                          "color: white;\n" \
-                                          "background-color: #FF9800;\n" \
-                                          "padding: 5px 15px 5px 15px;\n" \
-                                          "border-radius: 15px;\n" \
-                                          "font-family: Glacial Indifference;\n" \
-                                          "margin-bottom: 10px;\n" \
-                                          "margin-top: 10px;\n" \
-                                          "}"
-        self.GameReset_MsgLabel.setStyleSheet(self.MsgLabel_StyleSheet_yellow)
+        self.GameReset_MsgLabel = QLabel("")
+        self.MsgLabel_StyleSheet = ""
+        if self.MainWindow.Winner == 'user':
+            self.GameReset_MsgLabel.setText("You Won")
+            self.MsgLabel_StyleSheet = "QLabel{\n" \
+                                  "color: white;\n" \
+                                  "font-size: 17px;\n" \
+                                  "color: white;\n" \
+                                  "background-color: green;\n" \
+                                  "padding: 5px 15px 5px 15px;\n" \
+                                  "border-radius: 15px;\n" \
+                                  "font-family: Glacial Indifference;\n" \
+                                  "margin-bottom: 10px;\n" \
+                                  "margin-top: 10px;\n" \
+                                  "}"
+        elif self.MainWindow.Winner == 'pc':
+            self.GameReset_MsgLabel.setText("You Lost")
+            self.MsgLabel_StyleSheet = "QLabel{\n" \
+                                             "color: white;\n" \
+                                             "font-size: 17px;\n" \
+                                             "color: white;\n" \
+                                             "background-color: #DD5044;\n" \
+                                             "padding: 5px 15px 5px 15px;\n" \
+                                             "border-radius: 15px;\n" \
+                                             "font-family: Glacial Indifference;\n" \
+                                             "margin-bottom: 10px;\n" \
+                                             "margin-top: 10px;\n" \
+                                             "}"
+        elif self.MainWindow.Winner == 'drow':
+            self.GameReset_MsgLabel.setText("Game Drow")
+            self.MsgLabel_StyleSheet = "QLabel{\n" \
+                                              "color: white;\n" \
+                                              "font-size: 17px;\n" \
+                                              "color: white;\n" \
+                                              "background-color: #FF9800;\n" \
+                                              "padding: 5px 15px 5px 15px;\n" \
+                                              "border-radius: 15px;\n" \
+                                              "font-family: Glacial Indifference;\n" \
+                                              "margin-bottom: 10px;\n" \
+                                              "margin-top: 10px;\n" \
+                                              "}"
+        self.GameReset_MsgLabel.setStyleSheet(self.MsgLabel_StyleSheet)
         MsgHBoxLayout.addItem(self.HSpacerItem)
         MsgHBoxLayout.addWidget(self.GameReset_MsgLabel)
         MsgHBoxLayout.addItem(self.HSpacerItem)
@@ -238,6 +250,11 @@ class TicTac(QWidget):
         QtGui.QFontDatabase.addApplicationFont("Media/Font/Glacial Indifference.otf")
         QtGui.QFontDatabase.addApplicationFont("Media/Font/Glacial Indifference Bold.otf")
         super(TicTac, self).__init__()
+
+        # Game Algo Variable
+        self.Winner = None
+        self.Reserved_Block = []
+
         self.initwindow()
 
     def initwindow(self):
@@ -251,24 +268,92 @@ class TicTac(QWidget):
         self.show()
 
     def play_next(self, block):
-        if block == 1:
+        if block == 1 and block not in self.Reserved_Block:
             self.PlayGame_Block_1.setText("X")
-        elif block == 2:
+            self.Reserved_Block.append(block)
+        elif block == 2 and block not in self.Reserved_Block:
             self.PlayGame_Block_2.setText("X")
-        elif block == 3:
+            self.Reserved_Block.append(block)
+        elif block == 3 and block not in self.Reserved_Block:
             self.PlayGame_Block_3.setText("X")
-        elif block == 4:
+            self.Reserved_Block.append(block)
+        elif block == 4 and block not in self.Reserved_Block:
             self.PlayGame_Block_4.setText("X")
-        elif block == 5:
+            self.Reserved_Block.append(block)
+        elif block == 5 and block not in self.Reserved_Block:
             self.PlayGame_Block_5.setText("X")
-        elif block == 6:
+            self.Reserved_Block.append(block)
+        elif block == 6 and block not in self.Reserved_Block:
             self.PlayGame_Block_6.setText("X")
-        elif block == 7:
+            self.Reserved_Block.append(block)
+        elif block == 7 and block not in self.Reserved_Block:
             self.PlayGame_Block_7.setText("X")
-        elif block == 8:
+            self.Reserved_Block.append(block)
+        elif block == 8 and block not in self.Reserved_Block:
             self.PlayGame_Block_8.setText("X")
-        elif block == 9:
+            self.Reserved_Block.append(block)
+        elif block == 9 and block not in self.Reserved_Block:
             self.PlayGame_Block_9.setText("X")
+            self.Reserved_Block.append(block)
+
+        value = self.check_patter()
+        print(value)
+        if value != False:
+            if value == 'X':
+                self.Winner = 'user'
+            elif value == 'O':
+                self.Winner = 'pc'
+            self.GameReset.exec_()
+        if len(self.Reserved_Block) == 9:
+            self.Winner = 'drow'
+            self.GameReset.exec_()
+
+    def check_patter(self):
+        pattern = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 5, 9], [3, 5, 7], [1, 4, 7], [2, 5, 8], [3, 6, 9]]
+        pattern_data = []
+
+        for p_data in pattern:
+            temp_list = []
+            for block in p_data:
+                if block == 1:
+                    temp_list.append(self.PlayGame_Block_1.text())
+                if block == 2:
+                    temp_list.append(self.PlayGame_Block_2.text())
+                if block == 3:
+                    temp_list.append(self.PlayGame_Block_3.text())
+                if block == 4:
+                    temp_list.append(self.PlayGame_Block_4.text())
+                if block == 5:
+                    temp_list.append(self.PlayGame_Block_5.text())
+                if block == 6:
+                    temp_list.append(self.PlayGame_Block_6.text())
+                if block == 7:
+                    temp_list.append(self.PlayGame_Block_7.text())
+                if block == 8:
+                    temp_list.append(self.PlayGame_Block_8.text())
+                if block == 9:
+                    temp_list.append(self.PlayGame_Block_9.text())
+            pattern_data.append(temp_list)
+
+        for p_data in pattern_data:
+            b1, b2, b3 = p_data
+            if b1 == b2 == b3:
+                return b1
+        else:
+            return False
+
+    def reset_game(self):
+        self.Winner = None
+        self.Reserved_Block = []
+        self.PlayGame_Block_1.setText("")
+        self.PlayGame_Block_2.setText("")
+        self.PlayGame_Block_3.setText("")
+        self.PlayGame_Block_4.setText("")
+        self.PlayGame_Block_5.setText("")
+        self.PlayGame_Block_6.setText("")
+        self.PlayGame_Block_7.setText("")
+        self.PlayGame_Block_8.setText("")
+        self.PlayGame_Block_9.setText("")
 
     def connect_button(self):
         self.PlayGame_Block_1.clicked.connect(lambda x: self.play_next(1))
@@ -280,6 +365,19 @@ class TicTac(QWidget):
         self.PlayGame_Block_7.clicked.connect(lambda x: self.play_next(7))
         self.PlayGame_Block_8.clicked.connect(lambda x: self.play_next(8))
         self.PlayGame_Block_9.clicked.connect(lambda x: self.play_next(9))
+        self.ResetButton.clicked.connect(self.reset_game)
+
+
+    def get_QIcon(self, path):
+        icon = QtGui.QIcon(path)
+        return icon
+
+    def get_QSize(self, width, height):
+        return QtCore.QSize(width, height)
+
+    def get_QCursor(self, cursor):
+        if cursor == 'pointer':
+            return QtCore.Qt.PointingHandCursor
 
     def set_layout_in_mainlayout(self, new_layout, old_layout=None):
         if old_layout is not None:
@@ -328,7 +426,7 @@ class TicTac(QWidget):
                            "background: transparent;\n" \
                            "color: white;\n" \
                            "font-family: Glacial Indifference;\n" \
-                           "margin-top:8px;\n" \
+                           "margin-top:0px;\n" \
                            "}"
         Label.setStyleSheet(Label_StyleSheet)
         HBoxLayout.addWidget(Label)
@@ -433,9 +531,27 @@ class TicTac(QWidget):
         HBoxLayout.addItem(self.HSpacerItem)
         self.PlayGame_BlocksVBoxLayout.addLayout(HBoxLayout)
 
+        # reset Button H Box Layout.
+        self.ResetButton_HBoxLayout = QHBoxLayout()
+        self.ResetButton_HBoxLayout.setSpacing(0)
+        self.ResetButton_HBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.GamePlayLayout_VBoxLayout.addLayout(self.ResetButton_HBoxLayout)
+
         # creating reset button.
-        self.ResetButton = QPushButton("reset")
-        self.GamePlayLayout_VBoxLayout.addWidget(self.ResetButton)
+        self.ResetButton = QPushButton("")
+        StyleSheet = "QPushButton{\n" \
+                     "background: transparent;\n" \
+                     "}\n" \
+                     "QPushButton:hover{\n" \
+                     "background-color: #22B8CF;" \
+                     "border-radius: 5px;\n" \
+                     "}"
+        self.ResetButton.setStyleSheet(StyleSheet)
+        self.ResetButton.setCursor(self.get_QCursor("pointer"))
+        self.ResetButton.setIcon(self.get_QIcon("Media/Icon/replay.png"))
+        self.ResetButton_HBoxLayout.addItem(self.HSpacerItem)
+        self.ResetButton_HBoxLayout.addWidget(self.ResetButton)
+        self.ResetButton_HBoxLayout.addItem(self.HSpacerItem)
 
         # creating bottom developer Name.
         self.GamePlayLayout_DeveloperNameLayout = QVBoxLayout()
@@ -453,7 +569,7 @@ class TicTac(QWidget):
                            "background: transparent;\n" \
                            "color: white;\n" \
                            "font-family: Glacial Indifference;\n" \
-                           "margin-top:15px;\n" \
+                           "margin-top:10px;\n" \
                            "}"
         Label.setStyleSheet(Label_StyleSheet)
         HBoxLayout.addWidget(Label)
