@@ -1,7 +1,10 @@
 from PyQt5.QtWidgets import QWidget, QLabel, QPushButton, QFrame, QApplication, QSpacerItem, QSizePolicy, QDialog
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
 from PyQt5 import QtGui, QtCore
+import numpy as np
 import sys
+import random
+import pickle
 
 class GameReset(QDialog):
     def __init__(self, MainWindow):
@@ -221,6 +224,7 @@ class TicTac(QWidget):
         # Game Algo Variable
         self.Winner = None
         self.Reserved_Block = []
+        self.Blocks_Matrix = self.get_empty_array()
 
         self.initwindow()
 
@@ -235,54 +239,92 @@ class TicTac(QWidget):
         self.show()
 
     def play_next(self, block):
-        if block == 1 and block not in self.Reserved_Block:
-            self.PlayGame_Block_1.setText("X")
-            self.Reserved_Block.append(block)
-        elif block == 2 and block not in self.Reserved_Block:
-            self.PlayGame_Block_2.setText("X")
-            self.Reserved_Block.append(block)
-        elif block == 3 and block not in self.Reserved_Block:
-            self.PlayGame_Block_3.setText("X")
-            self.Reserved_Block.append(block)
-        elif block == 4 and block not in self.Reserved_Block:
-            self.PlayGame_Block_4.setText("X")
-            self.Reserved_Block.append(block)
-        elif block == 5 and block not in self.Reserved_Block:
-            self.PlayGame_Block_5.setText("X")
-            self.Reserved_Block.append(block)
-        elif block == 6 and block not in self.Reserved_Block:
-            self.PlayGame_Block_6.setText("X")
-            self.Reserved_Block.append(block)
-        elif block == 7 and block not in self.Reserved_Block:
-            self.PlayGame_Block_7.setText("X")
-            self.Reserved_Block.append(block)
-        elif block == 8 and block not in self.Reserved_Block:
-            self.PlayGame_Block_8.setText("X")
-            self.Reserved_Block.append(block)
-        elif block == 9 and block not in self.Reserved_Block:
-            self.PlayGame_Block_9.setText("X")
-            self.Reserved_Block.append(block)
-        self.update()
-
+        Loop = True
+        if not self.set_value_in_block(block, "X"):
+            return
         value = self.check_patter()
+        if self.take_game_winandlos_disicion(value):
+            self.reset_game()
+            self.set_default_StyleSheet_ofBlock()
+            return
 
+        while Loop:
+            Loop = False
+            self.teke_step()
+            value = self.check_patter()
+            if self.take_game_winandlos_disicion(value):
+                self.reset_game()
+                self.set_default_StyleSheet_ofBlock()
+                Loop = True
+
+    def select_from_empty_block(self, emptyblock, value):
+        selected = 0
+        mat_pattern = [[(0, 0), (0, 1), (0, 2), (1, 2, 3)],
+                       [(1, 0), (1, 1), (1, 2), (4, 5, 6)],
+                       [(2, 0), (2, 1), (2, 2), (7, 8, 9)],
+                       [(0, 0), (1, 1), (2, 2), (1, 5, 9)],
+                       [(0, 2), (1, 1), (2, 0), (3, 5, 7)],
+                       [(0, 0), (1, 0), (2, 0), (1, 4, 7)],
+                       [(0, 1), (1, 1), (2, 1), (2, 5, 8)],
+                       [(0, 2), (1, 2), (2, 2), (3, 6, 9)]]
+        for block in mat_pattern:
+            c1, c2, c3, blocks = block
+            b1, b2, b3 = blocks
+            if self.Blocks_Matrix[c1] == value or self.Blocks_Matrix[c1] == 'E':
+                if self.Blocks_Matrix[c1] == 'E':
+                    if b1 in emptyblock:
+                        selected = b1
+                    else:
+                        selected = 0
+                        continue
+                if self.Blocks_Matrix[c2] == value or self.Blocks_Matrix[c2] == 'E':
+                    if self.Blocks_Matrix[c2] == 'E':
+                        if selected == b1:
+                            selected = 0
+                            continue
+                        if b2 in emptyblock:
+                            selected = b2
+                        else:
+                            selected = 0
+                            continue
+                    if self.Blocks_Matrix[c3] == value or self.Blocks_Matrix[c3] == 'E':
+                        if self.Blocks_Matrix[c3] == 'E':
+                            if selected == b2 or selected == b1:
+                                selected = 0
+                                continue
+                            if b3 in emptyblock:
+                                selected = b3
+                                return selected
+                            else:
+                                selected = 0
+                                continue
+                        else:
+                            if selected != 0:
+                                return selected
+            else:
+                selected = 0
+                continue
+        return False
+
+
+    def take_game_winandlos_disicion(self, value):
         if value != False:
             if value == 'X':
                 self.Winner = 'user'
-                #self.GameReset_MsgLabel.setStyleSheet(self.MsgLabel_StyleSheet_Green)
                 self.GameReset.GameReset_MsgLabel.setText("You Won")
             elif value == 'O':
                 self.Winner = 'pc'
-                #self.GameReset.GameReset_MsgLabel.setStyleSheet(self.GameReset.MsgLabel_StyleSheet_Red)
                 self.GameReset.GameReset_MsgLabel.setText("You Lost")
             self.GameReset.exec_()
-            self.reset_game()
+            return True
         if len(self.Reserved_Block) == 9:
             self.Winner = 'drow'
-            #self.GameReset.GameReset_MsgLabel.setStyleSheet(self.GameReset.MsgLabel_StyleSheet_Yellow)
             self.GameReset.GameReset_MsgLabel.setText("Game Drow")
             self.GameReset.exec_()
-            self.reset_game()
+            return True
+        return False
+
+    def set_default_StyleSheet_ofBlock(self):
         self.PlayGame_Block_1.setStyleSheet(self.Block_StyleSheet)
         self.PlayGame_Block_2.setStyleSheet(self.Block_StyleSheet)
         self.PlayGame_Block_3.setStyleSheet(self.Block_StyleSheet)
@@ -293,68 +335,121 @@ class TicTac(QWidget):
         self.PlayGame_Block_8.setStyleSheet(self.Block_StyleSheet)
         self.PlayGame_Block_9.setStyleSheet(self.Block_StyleSheet)
 
-    def check_patter(self):
+    def teke_step(self):
+        unreserved_block = self.get_unreserved_block()
+        selected = self.select_from_empty_block(unreserved_block, 'O')
+        if not selected:
+            selected = self.select_from_empty_block(unreserved_block, 'X')
+            if not selected:
+                if 5 in unreserved_block:
+                    self.set_value_in_block(5, 'O')
+                else:
+                    selected = random.randint(0, len(unreserved_block)-1)
+                    self.set_value_in_block(unreserved_block[selected], 'O')
+            else:
+                self.set_value_in_block(selected, 'O')
+        else:
+            self.set_value_in_block(selected, 'O')
+
+    def set_value_in_block(self, block, value):
+        if block == 1 and block not in self.Reserved_Block:
+            self.PlayGame_Block_1.setText(value)
+            self.Blocks_Matrix[0, 0] = value
+            self.Reserved_Block.append(block)
+        elif block == 2 and block not in self.Reserved_Block:
+            self.PlayGame_Block_2.setText(value)
+            self.Blocks_Matrix[0, 1] = value
+            self.Reserved_Block.append(block)
+        elif block == 3 and block not in self.Reserved_Block:
+            self.PlayGame_Block_3.setText(value)
+            self.Blocks_Matrix[0, 2] = value
+            self.Reserved_Block.append(block)
+        elif block == 4 and block not in self.Reserved_Block:
+            self.PlayGame_Block_4.setText(value)
+            self.Blocks_Matrix[1, 0] = value
+            self.Reserved_Block.append(block)
+        elif block == 5 and block not in self.Reserved_Block:
+            self.PlayGame_Block_5.setText(value)
+            self.Blocks_Matrix[1, 1] = value
+            self.Reserved_Block.append(block)
+        elif block == 6 and block not in self.Reserved_Block:
+            self.PlayGame_Block_6.setText(value)
+            self.Blocks_Matrix[1, 2] = value
+            self.Reserved_Block.append(block)
+        elif block == 7 and block not in self.Reserved_Block:
+            self.PlayGame_Block_7.setText(value)
+            self.Blocks_Matrix[2, 0] = value
+            self.Reserved_Block.append(block)
+        elif block == 8 and block not in self.Reserved_Block:
+            self.PlayGame_Block_8.setText(value)
+            self.Blocks_Matrix[2, 1] = value
+            self.Reserved_Block.append(block)
+        elif block == 9 and block not in self.Reserved_Block:
+            self.PlayGame_Block_9.setText(value)
+            self.Blocks_Matrix[2, 2] = value
+            self.Reserved_Block.append(block)
+        else:
+            return False
+        return True
+
+    def get_empty_array(self):
+        array = np.array([['E', 'E', 'E'], ['E', 'E', 'E'], ['E', 'E', 'E']])
+        return array
+
+    def get_unreserved_block(self):
+        count = 1
+        unreserved_block = []
+        while count <= 9:
+            if count not in self.Reserved_Block:
+                unreserved_block.append(count)
+            count += 1
+        return unreserved_block
+
+    def check_patter(self, blocks_matrix=None, change_block_color=True):
+        if blocks_matrix is None:
+            blocks_matrix = self.Blocks_Matrix
         pattern = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 5, 9], [3, 5, 7], [1, 4, 7], [2, 5, 8], [3, 6, 9]]
-        for p_data in pattern:
-            temp_list = []
-            block_number = []
-            for block in p_data:
-                if block == 1:
-                    temp_list.append(self.PlayGame_Block_1.text())
-                    block_number.append(1)
-                if block == 2:
-                    temp_list.append(self.PlayGame_Block_2.text())
-                    block_number.append(2)
-                if block == 3:
-                    temp_list.append(self.PlayGame_Block_3.text())
-                    block_number.append(3)
-                if block == 4:
-                    temp_list.append(self.PlayGame_Block_4.text())
-                    block_number.append(4)
-                if block == 5:
-                    temp_list.append(self.PlayGame_Block_5.text())
-                    block_number.append(5)
-                if block == 6:
-                    temp_list.append(self.PlayGame_Block_6.text())
-                    block_number.append(6)
-                if block == 7:
-                    temp_list.append(self.PlayGame_Block_7.text())
-                    block_number.append(7)
-                if block == 8:
-                    temp_list.append(self.PlayGame_Block_8.text())
-                    block_number.append(8)
-                if block == 9:
-                    temp_list.append(self.PlayGame_Block_9.text())
-                    block_number.append(9)
-            b1, b2, b3 = temp_list
-            if (b1 != "" and b2 != "" and b3 != ""):
-                if b1 == b2 == b3:
-                    b1, b2, b3 = block_number
-                    if b1 == 1 or b2 == 1 or b3 == 1:
-                        self.PlayGame_Block_1.setStyleSheet(self.WinBlock_StyleSheet)
-                    if b1 == 2 or b2 == 2 or b3 == 2:
-                        self.PlayGame_Block_2.setStyleSheet(self.WinBlock_StyleSheet)
-                    if b1 == 3 or b2 == 3 or b3 == 3:
-                        self.PlayGame_Block_3.setStyleSheet(self.WinBlock_StyleSheet)
-                    if b1 == 4 or b2 == 4 or b3 == 4:
-                        self.PlayGame_Block_4.setStyleSheet(self.WinBlock_StyleSheet)
-                    if b1 == 5 or b2 == 5 or b3 == 5:
-                        self.PlayGame_Block_5.setStyleSheet(self.WinBlock_StyleSheet)
-                    if b1 == 6 or b2 == 6 or b3 == 6:
-                        self.PlayGame_Block_6.setStyleSheet(self.WinBlock_StyleSheet)
-                    if b1 == 7 or b2 == 7 or b3 == 7:
-                        self.PlayGame_Block_7.setStyleSheet(self.WinBlock_StyleSheet)
-                    if b1 == 8 or b2 == 8 or b3 == 8:
-                        self.PlayGame_Block_8.setStyleSheet(self.WinBlock_StyleSheet)
-                    if b1 == 9 or b2 == 9 or b3 == 9:
-                        self.PlayGame_Block_9.setStyleSheet(self.WinBlock_StyleSheet)
-                    return temp_list[0]
+        mat_pattern = [[(0, 0), (0, 1), (0, 2), (1, 2, 3)],
+                       [(1, 0), (1, 1), (1, 2), (4, 5, 6)],
+                       [(2, 0), (2, 1), (2, 2), (7, 8, 9)],
+                       [(0, 0), (1, 1), (2, 2), (1, 5, 9)],
+                       [(0, 2), (1, 1), (2, 0), (3, 5, 7)],
+                       [(0, 0), (1, 0), (2, 0), (1, 4, 7)],
+                       [(0, 1), (1, 1), (2, 1), (2, 5, 8)],
+                       [(0, 2), (1, 2), (2, 2), (3, 6, 9)]]
+        for p_data in mat_pattern:
+            c1, c2, c3, group = p_data
+            if blocks_matrix[c1] != "E" and blocks_matrix[c2] != "E" and blocks_matrix[c3] != "E":
+                if blocks_matrix[c1] == blocks_matrix[c2] == blocks_matrix[c3]:
+                    if change_block_color:
+                        b1, b2, b3 = group
+                        if b1 == 1 or b2 == 1 or b3 == 1:
+                            self.PlayGame_Block_1.setStyleSheet(self.WinBlock_StyleSheet)
+                        if b1 == 2 or b2 == 2 or b3 == 2:
+                            self.PlayGame_Block_2.setStyleSheet(self.WinBlock_StyleSheet)
+                        if b1 == 3 or b2 == 3 or b3 == 3:
+                            self.PlayGame_Block_3.setStyleSheet(self.WinBlock_StyleSheet)
+                        if b1 == 4 or b2 == 4 or b3 == 4:
+                            self.PlayGame_Block_4.setStyleSheet(self.WinBlock_StyleSheet)
+                        if b1 == 5 or b2 == 5 or b3 == 5:
+                            self.PlayGame_Block_5.setStyleSheet(self.WinBlock_StyleSheet)
+                        if b1 == 6 or b2 == 6 or b3 == 6:
+                            self.PlayGame_Block_6.setStyleSheet(self.WinBlock_StyleSheet)
+                        if b1 == 7 or b2 == 7 or b3 == 7:
+                            self.PlayGame_Block_7.setStyleSheet(self.WinBlock_StyleSheet)
+                        if b1 == 8 or b2 == 8 or b3 == 8:
+                            self.PlayGame_Block_8.setStyleSheet(self.WinBlock_StyleSheet)
+                        if b1 == 9 or b2 == 9 or b3 == 9:
+                            self.PlayGame_Block_9.setStyleSheet(self.WinBlock_StyleSheet)
+
+                    return blocks_matrix[c1]
         else:
             return False
 
-    def reset_game(self):
+    def reset_game(self, bybutton=False):
         self.Winner = None
         self.Reserved_Block = []
+        self.Blocks_Matrix = self.get_empty_array()
         self.PlayGame_Block_1.setText("")
         self.PlayGame_Block_2.setText("")
         self.PlayGame_Block_3.setText("")
@@ -375,7 +470,7 @@ class TicTac(QWidget):
         self.PlayGame_Block_7.clicked.connect(lambda x: self.play_next(7))
         self.PlayGame_Block_8.clicked.connect(lambda x: self.play_next(8))
         self.PlayGame_Block_9.clicked.connect(lambda x: self.play_next(9))
-        self.ResetButton.clicked.connect(self.reset_game)
+        self.ResetButton.clicked.connect(lambda x: self.reset_game(True))
 
 
     def get_QIcon(self, path):
